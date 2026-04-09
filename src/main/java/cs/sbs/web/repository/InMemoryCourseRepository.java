@@ -103,6 +103,7 @@ public class InMemoryCourseRepository implements CourseRepository {
                 source.getDescription(),
                 source.getDuration(),
                 source.getStudentCount(),
+                source.getCoverUrl(),
                 source.getCreatedAt(),
                 source.getUpdatedAt()
         );

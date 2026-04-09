@@ -1,19 +1,28 @@
-package cs.sbs.web.service;
+package cs.sbs.web.service.impl;
 
+import cs.sbs.web.dto.CourseEvent;
 import cs.sbs.web.entity.Course;
 import cs.sbs.web.exception.ResourceNotFoundException;
 import cs.sbs.web.repository.CourseRepository;
+import cs.sbs.web.service.CourseService;
+import cs.sbs.web.service.CourseSseService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
+    private final CourseSseService courseSseService;
 
-    public CourseServiceImpl(CourseRepository courseRepository) {
+    public CourseServiceImpl(CourseRepository courseRepository, CourseSseService courseSseService) {
         this.courseRepository = courseRepository;
+        this.courseSseService = courseSseService;
     }
 
     @Override
@@ -39,7 +48,9 @@ public class CourseServiceImpl implements CourseService {
     public Course create(Course course) {
         normalizeCourse(course);
         course.setId(null);
-        return courseRepository.save(course);
+        Course created = courseRepository.save(course);
+        courseSseService.publish(created.getId(), "courseCreated", created);
+        return created;
     }
 
     @Override
@@ -54,7 +65,9 @@ public class CourseServiceImpl implements CourseService {
         existing.setDuration(course.getDuration());
         existing.setStudentCount(course.getStudentCount());
 
-        return courseRepository.save(existing);
+        Course updated = courseRepository.save(existing);
+        courseSseService.publish(updated.getId(), "courseUpdated", updated);
+        return updated;
     }
 
     @Override
@@ -63,6 +76,7 @@ public class CourseServiceImpl implements CourseService {
             throw new ResourceNotFoundException("课程不存在: id=" + id);
         }
         courseRepository.deleteById(id);
+        courseSseService.publish(id, "courseDeleted", id);
     }
 
     @Override
@@ -70,7 +84,17 @@ public class CourseServiceImpl implements CourseService {
         Course course = findById(id);
         Integer count = course.getStudentCount() == null ? 0 : course.getStudentCount();
         course.setStudentCount(count + 1);
-        courseRepository.save(course);
+        Course updated = courseRepository.save(course);
+        courseSseService.publish(updated.getId(), "studentCountUpdated", updated.getStudentCount());
+    }
+
+    @Override
+    public Course updateCoverUrl(Long id, String coverUrl) {
+        Course course = findById(id);
+        course.setCoverUrl(coverUrl);
+        Course updated = courseRepository.save(course);
+        courseSseService.publish(updated.getId(), "coverUploaded", updated.getCoverUrl());
+        return updated;
     }
 
     private void normalizeCourse(Course course) {

@@ -6,6 +6,20 @@ server:
 spring:
   application:
     name: 智学云在线学习平台
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+app:
+  minio:
+    enabled: true
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    bucket: ${MINIO_BUCKET:cloud-learn-exp04}
+    presign-expiry-seconds: ${MINIO_PRESIGN_EXPIRY_SECONDS:3600}
 
 logging:
   level:

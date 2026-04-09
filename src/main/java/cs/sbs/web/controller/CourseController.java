@@ -3,10 +3,15 @@ package cs.sbs.web.controller;
 import cs.sbs.web.dto.ApiResponse;
 import cs.sbs.web.dto.CourseDTO;
 import cs.sbs.web.entity.Course;
+import cs.sbs.web.exception.BadRequestException;
+import cs.sbs.web.dto.OssObjectInfo;
+import cs.sbs.web.service.OssService;
 import cs.sbs.web.service.CourseService;
+import cs.sbs.web.service.CourseSseService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,8 +24,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -29,9 +37,13 @@ public class CourseController {
     private static final Logger log = LoggerFactory.getLogger(CourseController.class);
 
     private final CourseService courseService;
+    private final CourseSseService courseSseService;
+    private final OssService ossService;
 
-    public CourseController(CourseService courseService) {
+    public CourseController(CourseService courseService, CourseSseService courseSseService, OssService ossService) {
         this.courseService = courseService;
+        this.courseSseService = courseSseService;
+        this.ossService = ossService;
     }
 
     @GetMapping
@@ -84,6 +96,35 @@ public class CourseController {
         log.info("PATCH /api/courses/{}/students", id);
         courseService.incrementStudentCount(id);
         return ResponseEntity.ok(ApiResponse.success("学习人数更新成功", null));
+    }
+
+    @GetMapping(value = "/{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribeCourseEvents(@PathVariable Long id) {
+        log.info("GET /api/courses/{}/events", id);
+        courseService.findById(id);
+        return courseSseService.subscribe(id);
+    }
+
+    @PostMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Course>> uploadCourseCover(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file
+    ) {
+        log.info("POST /api/courses/{}/cover", id);
+
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("上传文件不能为空");
+        }
+
+        courseService.findById(id);
+
+        String original = file.getOriginalFilename();
+        String safeName = original == null || original.isBlank() ? "cover" : original.replaceAll("\\s+", "_");
+        String objectKey = "courses/" + id + "/cover/" + UUID.randomUUID() + "-" + safeName;
+
+        OssObjectInfo info = ossService.upload(null, objectKey, file);
+        Course updated = courseService.updateCoverUrl(id, info.getUrl());
+        return ResponseEntity.ok(ApiResponse.success("封面上传成功", updated));
     }
 
     private Course convertToEntity(CourseDTO dto) {

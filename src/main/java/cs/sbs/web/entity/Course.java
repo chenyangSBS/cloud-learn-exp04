@@ -12,6 +12,7 @@ public class Course {
     private String description;
     private Integer duration;
     private Integer studentCount;
+    private String coverUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -26,6 +27,7 @@ public class Course {
             String description,
             Integer duration,
             Integer studentCount,
+            String coverUrl,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
@@ -36,6 +38,7 @@ public class Course {
         this.description = description;
         this.duration = duration;
         this.studentCount = studentCount;
+        this.coverUrl = coverUrl;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -94,6 +97,14 @@ public class Course {
 
     public void setStudentCount(Integer studentCount) {
         this.studentCount = studentCount;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 
     public LocalDateTime getCreatedAt() {
