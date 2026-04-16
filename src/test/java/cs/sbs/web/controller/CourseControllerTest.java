@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -26,7 +27,7 @@ class CourseControllerTest {
 
     @Test
     void getAllCourses_returnsSeededData() throws Exception {
-        String body = mockMvc.perform(get("/api/courses"))
+        String body = mockMvc.perform(get("/api/courses").with(httpBasic("student", "password")))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -42,6 +43,7 @@ class CourseControllerTest {
     void createCourse_invalidPayload_returns400WithFieldErrors() throws Exception {
         String body = mockMvc.perform(
                         post("/api/courses")
+                                .with(httpBasic("student", "password"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -65,7 +67,7 @@ class CourseControllerTest {
 
     @Test
     void getCourseById_notFound_returns404() throws Exception {
-        String body = mockMvc.perform(get("/api/courses/999999"))
+        String body = mockMvc.perform(get("/api/courses/999999").with(httpBasic("student", "password")))
                 .andExpect(status().isNotFound())
                 .andReturn()
                 .getResponse()
