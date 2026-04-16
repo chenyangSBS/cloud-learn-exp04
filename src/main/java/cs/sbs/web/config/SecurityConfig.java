@@ -3,6 +3,8 @@ package cs.sbs.web.config;
 import cs.sbs.web.service.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
@@ -33,6 +36,11 @@ public class SecurityConfig {
                                 "/upload/**",
                                 "/error"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/courses", "/api/courses/upload", "/api/courses/*/cover").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/courses/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/courses/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/courses/*/students").hasAnyRole("ADMIN", "STUDENT")
+                        .requestMatchers(HttpMethod.GET, "/api/courses/**").hasAnyRole("ADMIN", "STUDENT")
                         .anyRequest().authenticated()
                 )
                 .httpBasic(basic -> basic.disable())

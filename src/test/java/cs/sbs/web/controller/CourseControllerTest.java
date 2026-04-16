@@ -24,16 +24,18 @@ class CourseControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private String loginAndGetToken() throws Exception {
+    private String loginAndGetToken(String username, String password) throws Exception {
         String body = mockMvc.perform(
                         post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                          "username": "student",
-                                          "password": "password"
-                                        }
-                                        """)
+                                .content(
+                                        """
+                                                {
+                                                  "username": "%s",
+                                                  "password": "%s"
+                                                }
+                                                """.formatted(username, password)
+                                )
                 )
                 .andExpect(status().isOk())
                 .andReturn()
@@ -46,7 +48,7 @@ class CourseControllerTest {
 
     @Test
     void getAllCourses_returnsSeededData() throws Exception {
-        String token = loginAndGetToken();
+        String token = loginAndGetToken("student", "password");
         String body = mockMvc.perform(get("/api/courses").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andReturn()
@@ -61,7 +63,7 @@ class CourseControllerTest {
 
     @Test
     void createCourse_invalidPayload_returns400WithFieldErrors() throws Exception {
-        String token = loginAndGetToken();
+        String token = loginAndGetToken("admin", "admin123");
         String body = mockMvc.perform(
                         post("/api/courses")
                                 .header("Authorization", "Bearer " + token)
@@ -87,8 +89,27 @@ class CourseControllerTest {
     }
 
     @Test
+    void createCourse_asStudent_returns403() throws Exception {
+        String token = loginAndGetToken("student", "password");
+        mockMvc.perform(
+                        post("/api/courses")
+                                .header("Authorization", "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "title": "Test",
+                                          "instructor": "Test",
+                                          "price": 1.0,
+                                          "duration": 1
+                                        }
+                                        """)
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void getCourseById_notFound_returns404() throws Exception {
-        String token = loginAndGetToken();
+        String token = loginAndGetToken("student", "password");
         String body = mockMvc.perform(get("/api/courses/999999").header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound())
                 .andReturn()
