@@ -43,7 +43,7 @@ class CourseControllerTest {
     void createCourse_invalidPayload_returns400WithFieldErrors() throws Exception {
         String body = mockMvc.perform(
                         post("/api/courses")
-                                .with(httpBasic("student", "password"))
+                                .with(httpBasic("admin", "admin123"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
