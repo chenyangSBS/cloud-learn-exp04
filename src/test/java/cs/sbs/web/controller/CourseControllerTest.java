@@ -24,9 +24,30 @@ class CourseControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private String loginAndGetToken() throws Exception {
+        String body = mockMvc.perform(
+                        post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "username": "student",
+                                          "password": "password"
+                                        }
+                                        """)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        JsonNode json = objectMapper.readTree(body);
+        return json.get("data").get("accessToken").asText();
+    }
+
     @Test
     void getAllCourses_returnsSeededData() throws Exception {
-        String body = mockMvc.perform(get("/api/courses"))
+        String token = loginAndGetToken();
+        String body = mockMvc.perform(get("/api/courses").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -40,8 +61,10 @@ class CourseControllerTest {
 
     @Test
     void createCourse_invalidPayload_returns400WithFieldErrors() throws Exception {
+        String token = loginAndGetToken();
         String body = mockMvc.perform(
                         post("/api/courses")
+                                .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -65,7 +88,8 @@ class CourseControllerTest {
 
     @Test
     void getCourseById_notFound_returns404() throws Exception {
-        String body = mockMvc.perform(get("/api/courses/999999"))
+        String token = loginAndGetToken();
+        String body = mockMvc.perform(get("/api/courses/999999").header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound())
                 .andReturn()
                 .getResponse()

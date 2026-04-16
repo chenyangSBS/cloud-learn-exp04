@@ -23,6 +23,11 @@ app:
     secret-key: ${MINIO_SECRET_KEY:minioadmin}
     bucket: ${MINIO_BUCKET:cloud-learn-exp04}
     presign-expiry-seconds: ${MINIO_PRESIGN_EXPIRY_SECONDS:3600}
+  security:
+    jwt:
+      issuer: cloud-learn-exp04
+      secret: ${JWT_SECRET:cloud-learn-exp04-change-me-please-32bytes-min}
+      access-token-ttl-seconds: ${JWT_ACCESS_TTL_SECONDS:3600}
 
 logging:
   level:
