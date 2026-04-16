@@ -4,12 +4,7 @@ import cs.sbs.web.entity.Course;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -103,7 +98,10 @@ public class InMemoryCourseRepository implements CourseRepository {
                 source.getDescription(),
                 source.getDuration(),
                 source.getStudentCount(),
+                source.getCoverBucket(),
+                source.getCoverObjectKey(),
                 source.getCoverUrl(),
+                source.getCoverUrlExpiresAt(),
                 source.getCreatedAt(),
                 source.getUpdatedAt()
         );

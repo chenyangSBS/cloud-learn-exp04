@@ -1,11 +1,10 @@
 package cs.sbs.web.config;
 
+import cs.sbs.web.dto.MinioProperties;
 import io.minio.MinioClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import cs.sbs.web.dto.MinioProperties;
 
 @Configuration
 public class MinioConfig {

@@ -2,28 +2,21 @@ package cs.sbs.web.controller;
 
 import cs.sbs.web.dto.ApiResponse;
 import cs.sbs.web.dto.CourseDTO;
+import cs.sbs.web.dto.FileDTO;
+import cs.sbs.web.dto.OssObjectInfo;
 import cs.sbs.web.entity.Course;
 import cs.sbs.web.exception.BadRequestException;
-import cs.sbs.web.dto.OssObjectInfo;
-import cs.sbs.web.service.OssService;
 import cs.sbs.web.service.CourseService;
 import cs.sbs.web.service.CourseSseService;
+import cs.sbs.web.service.OssService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -40,6 +33,9 @@ import java.util.UUID;
 public class CourseController {
 
     private static final Logger log = LoggerFactory.getLogger(CourseController.class);
+
+    @Value("${server.port}")
+    public String port;
 
     private final CourseService courseService;
     private final CourseSseService courseSseService;
@@ -111,14 +107,14 @@ public class CourseController {
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ApiResponse<FileDTO>> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
-            String upload_url = "src/main/resources/upload/";
-            Path path = Paths.get(upload_url + file.getOriginalFilename());
+            String upload_url_prefix = "src/main/resources/upload/";
+            Path path = Paths.get(upload_url_prefix + file.getOriginalFilename());
             Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-            return upload_url + file.getOriginalFilename();
+            return ResponseEntity.ok(ApiResponse.success(new FileDTO(file.getOriginalFilename(),new StringBuilder().append("http://localhost:").append(port).append("/").append(file.getOriginalFilename()).toString())));
         } catch (IOException e) {
-            return "exception";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("上传文件失败", 500));
         }
     }
 
@@ -140,7 +136,7 @@ public class CourseController {
         String objectKey = "courses/" + id + "/cover/" + UUID.randomUUID() + "-" + safeName;
 
         OssObjectInfo info = ossService.upload(null, objectKey, file);
-        Course updated = courseService.updateCoverUrl(id, info.getUrl());
+        Course updated = courseService.updateCoverObject(id, info.getBucket(), info.getObjectKey(), info.getUrl(), info.getExpiresAt());
         return ResponseEntity.ok(ApiResponse.success("封面上传成功", updated));
     }
 

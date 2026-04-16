@@ -1,5 +1,6 @@
 package cs.sbs.web.entity;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -12,7 +13,10 @@ public class Course {
     private String description;
     private Integer duration;
     private Integer studentCount;
+    private String coverBucket;
+    private String coverObjectKey;
     private String coverUrl;
+    private Instant coverUrlExpiresAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -27,7 +31,10 @@ public class Course {
             String description,
             Integer duration,
             Integer studentCount,
+            String coverBucket,
+            String coverObjectKey,
             String coverUrl,
+            Instant coverUrlExpiresAt,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
@@ -38,7 +45,10 @@ public class Course {
         this.description = description;
         this.duration = duration;
         this.studentCount = studentCount;
+        this.coverBucket = coverBucket;
+        this.coverObjectKey = coverObjectKey;
         this.coverUrl = coverUrl;
+        this.coverUrlExpiresAt = coverUrlExpiresAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -99,12 +109,36 @@ public class Course {
         this.studentCount = studentCount;
     }
 
+    public String getCoverBucket() {
+        return coverBucket;
+    }
+
+    public void setCoverBucket(String coverBucket) {
+        this.coverBucket = coverBucket;
+    }
+
+    public String getCoverObjectKey() {
+        return coverObjectKey;
+    }
+
+    public void setCoverObjectKey(String coverObjectKey) {
+        this.coverObjectKey = coverObjectKey;
+    }
+
     public String getCoverUrl() {
         return coverUrl;
     }
 
     public void setCoverUrl(String coverUrl) {
         this.coverUrl = coverUrl;
+    }
+
+    public Instant getCoverUrlExpiresAt() {
+        return coverUrlExpiresAt;
+    }
+
+    public void setCoverUrlExpiresAt(Instant coverUrlExpiresAt) {
+        this.coverUrlExpiresAt = coverUrlExpiresAt;
     }
 
     public LocalDateTime getCreatedAt() {

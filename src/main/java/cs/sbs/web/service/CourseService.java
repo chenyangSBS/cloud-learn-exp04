@@ -1,8 +1,8 @@
 package cs.sbs.web.service;
 
 import cs.sbs.web.entity.Course;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface CourseService {
@@ -21,6 +21,6 @@ public interface CourseService {
 
     void incrementStudentCount(Long id);
 
-    Course updateCoverUrl(Long id, String coverUrl);
+    Course updateCoverObject(Long id, String bucket, String objectKey, String presignedUrl, Instant expiresAt);
 
 }

@@ -3,17 +3,13 @@ package cs.sbs.web.service.impl;
 import cs.sbs.web.dto.MinioProperties;
 import cs.sbs.web.dto.OssObjectInfo;
 import cs.sbs.web.service.OssService;
-import io.minio.BucketExistsArgs;
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.Http;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -59,9 +55,37 @@ public class MinioOssServiceImpl implements OssService {
                             .expiry(properties.getPresignExpirySeconds())
                             .build()
             );
-            return new OssObjectInfo(normalizedBucket, normalizedObjectKey, url);
+            Instant expiresAt = Instant.now().plusSeconds(properties.getPresignExpirySeconds());
+            return new OssObjectInfo(normalizedBucket, normalizedObjectKey, url, expiresAt);
         } catch (Exception ex) {
             throw new RuntimeException("上传文件到 MinIO 失败(endpoint=" + properties.getEndpoint() + "): " + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public OssObjectInfo presignGet(String bucket, String objectKey) {
+        try {
+            String normalizedBucket = bucket == null || bucket.isBlank() ? properties.getBucket() : bucket;
+            String normalizedObjectKey = objectKey == null ? "" : objectKey.trim();
+            if (normalizedObjectKey.isBlank()) {
+                throw new IllegalArgumentException("objectKey不能为空");
+            }
+            while (normalizedObjectKey.startsWith("/")) {
+                normalizedObjectKey = normalizedObjectKey.substring(1);
+            }
+
+            String url = presignClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Http.Method.GET)
+                            .bucket(normalizedBucket)
+                            .object(normalizedObjectKey)
+                            .expiry(properties.getPresignExpirySeconds())
+                            .build()
+            );
+            Instant expiresAt = Instant.now().plusSeconds(properties.getPresignExpirySeconds());
+            return new OssObjectInfo(normalizedBucket, normalizedObjectKey, url, expiresAt);
+        } catch (Exception ex) {
+            throw new RuntimeException("生成预签名URL失败(endpoint=" + properties.getEndpoint() + "): " + ex.getMessage(), ex);
         }
     }
 
