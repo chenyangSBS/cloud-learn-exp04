@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -48,6 +49,7 @@ public class CourseController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<ApiResponse<List<Course>>> getAllCourses() {
         log.info("GET /api/courses");
         List<Course> courses = courseService.findAll();
@@ -55,6 +57,7 @@ public class CourseController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<ApiResponse<Course>> getCourseById(@PathVariable Long id) {
         log.info("GET /api/courses/{}", id);
         Course course = courseService.findById(id);
@@ -62,6 +65,7 @@ public class CourseController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<ApiResponse<List<Course>>> searchCourses(@RequestParam(required = false) String keyword) {
         log.info("GET /api/courses/search?keyword={}", keyword);
         List<Course> courses = courseService.search(keyword);
@@ -69,6 +73,7 @@ public class CourseController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Course>> createCourse(@Valid @RequestBody CourseDTO courseDTO) {
         log.info("POST /api/courses");
         Course created = courseService.create(convertToEntity(courseDTO));
@@ -76,6 +81,7 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Course>> updateCourse(
             @PathVariable Long id,
             @Valid @RequestBody CourseDTO courseDTO
@@ -86,6 +92,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable Long id) {
         log.info("DELETE /api/courses/{}", id);
         courseService.delete(id);
@@ -93,6 +100,7 @@ public class CourseController {
     }
 
     @PatchMapping("/{id}/students")
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<ApiResponse<Void>> incrementStudentCount(@PathVariable Long id) {
         log.info("PATCH /api/courses/{}/students", id);
         courseService.incrementStudentCount(id);
@@ -100,6 +108,7 @@ public class CourseController {
     }
 
     @GetMapping(value = "/{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public SseEmitter subscribeCourseEvents(@PathVariable Long id) {
         log.info("GET /api/courses/{}/events", id);
         courseService.findById(id);
@@ -107,6 +116,7 @@ public class CourseController {
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<FileDTO>> uploadFile(@RequestParam("file") MultipartFile file) {
         try {
             String upload_url_prefix = "src/main/resources/upload/";
@@ -119,6 +129,7 @@ public class CourseController {
     }
 
     @PostMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Course>> uploadCourseCover(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file
