@@ -27,6 +27,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
@@ -103,6 +108,18 @@ public class CourseController {
         log.info("GET /api/courses/{}/events", id);
         courseService.findById(id);
         return courseSseService.subscribe(id);
+    }
+
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String uploadFile(@RequestParam("file") MultipartFile file) {
+        try {
+            String upload_url = "src/main/resources/upload/";
+            Path path = Paths.get(upload_url + file.getOriginalFilename());
+            Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+            return upload_url + file.getOriginalFilename();
+        } catch (IOException e) {
+            return "exception";
+        }
     }
 
     @PostMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

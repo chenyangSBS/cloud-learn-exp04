@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Created-By: IntelliJ IDEA
+Built-By: yangchen
+Build-Jdk: Eclipse Temurin 21.0.7 - aarch64
+Implementation-Title: 智学云在线学习平台
+Implementation-Version: 1.0.0
+Implementation-Vendor-Id: cs.sbs.web
+Main-Class: ${start-class}
+

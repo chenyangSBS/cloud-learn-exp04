@@ -4,9 +4,6 @@ server:
     context-path: /
 
 spring:
-  web:
-    resources:
-      static-locations: classpath:/META-INF/resources/, classpath:/resources/, classpath:/static/, classpath:/public/, classpath:/upload/
   application:
     name: 智学云在线学习平台
   servlet:
@@ -24,9 +21,15 @@ app:
     bucket: ${MINIO_BUCKET:cloud-learn-exp04}
     presign-expiry-seconds: ${MINIO_PRESIGN_EXPIRY_SECONDS:3600}
 
+
+#debug -> info -> warn -> error
+#
+#
+#20 -> 40 -> 60 -> 80
+
 logging:
   level:
     cs.sbs.web: INFO
-    org.springframework.web: INFO
+    org.springframework.web: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
